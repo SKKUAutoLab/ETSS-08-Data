@@ -1,19 +1,5 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2020 Computer Vision Center (CVC) at the Universitat Autonoma de
-# Barcelona (UAB).
-#
-# This work is licensed under the terms of the MIT license.
-# For a copy, see <https://opensource.org/licenses/MIT>.
-
-"""
-Script that render multiple sensors in the same pygame window
-
-By default, it renders four cameras, one LiDAR and one Semantic LiDAR.
-It can easily be configure for any different number of sensors. 
-To do that, check lines 290-308.
-"""
-
 import glob
 import os
 import sys
@@ -27,7 +13,6 @@ except IndexError:
 	pass
 
 import carla
-from carla import ColorConverter as cc
 
 import argparse
 import random
