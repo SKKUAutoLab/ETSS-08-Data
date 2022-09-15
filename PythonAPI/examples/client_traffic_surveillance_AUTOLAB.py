@@ -27,6 +27,7 @@ try:
 except ImportError:
 	raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
+
 class CustomTimer:
 	def __init__(self):
 		try:
@@ -36,6 +37,7 @@ class CustomTimer:
 
 	def time(self):
 		return self.timer()
+
 
 class DisplayManager:
 	def __init__(self, grid_size, window_size):
@@ -323,6 +325,7 @@ class SensorManager:
 	def destroy(self):
 		self.sensor.destroy()
 
+
 def run_simulation(args, client):
 	"""This function performed one test run using the args parameters
 	and connecting to the carla client passed.
@@ -335,7 +338,7 @@ def run_simulation(args, client):
 
 	try:
 
-		# Getting the world and
+		# NOTE: Getting the world and
 		world = client.get_world()
 		original_settings = world.get_settings()
 
@@ -348,23 +351,30 @@ def run_simulation(args, client):
 			world.apply_settings(settings)
 
 
-		# Instanciating the vehicle to which we attached the sensors
-		bp = world.get_blueprint_library().filter('charger_2020')[0]
-		vehicle = world.spawn_actor(bp, random.choice(world.get_map().get_spawn_points()))
+		# NOTE: Instanciating the vehicle to which we attached the sensors
+		bp = world.get_blueprint_library().filter('vehicle.bh.crossbike')[0]  # Set vehicle
+		# vehicle = world.spawn_actor(bp, random.choice(world.get_map().get_spawn_points()))  # Set random position on map
+		vehicle = world.spawn_actor(bp,
+									carla.Transform(
+										carla.Location(x=-58.7, y=36.2, z=0.600000),
+										carla.Rotation(pitch=0.000000, yaw=-45.0, roll=0.000000)
+									)
+									)
 		vehicle_list.append(vehicle)
-		vehicle.set_autopilot(True)
+		# vehicle.set_autopilot(True)  # Set autorun by AI
 
-		# Display Manager organize all the sensors an its display in a window
+		# NOTE: Display Manager organize all the sensors an its display in a window
 		# If can easily configure the grid and the total window size
-		display_manager = DisplayManager(grid_size=[3, 3], window_size=[args.width, args.height])
+		display_manager = DisplayManager(grid_size=[2, 3], window_size=[args.width, args.height])
 
+		# NOTE: setup all the sensors from the vehicle
 		# Then, SensorManager can be used to spawn RGBCamera, LiDARs and SemanticLiDARs as needed
 		# and assign each of them to a grid position,
 		SensorManager(
 			world,
 			display_manager,
 			'RGBCamera',
-			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=-90)),
+			carla.Transform(carla.Location(x=0, z=10), carla.Rotation(pitch=-45.0, yaw=-90)),
 			vehicle,
 			{},
 			display_pos=[0, 0]
@@ -373,7 +383,7 @@ def run_simulation(args, client):
 			world,
 			display_manager,
 			'RGBCamera',
-			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)),
+			carla.Transform(carla.Location(x=-5, y=0, z=20), carla.Rotation(pitch=-45.0, yaw=+00)),
 			vehicle,
 			{},
 			display_pos=[0, 1]
@@ -382,7 +392,7 @@ def run_simulation(args, client):
 			world,
 			display_manager,
 			'RGBCamera',
-			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+90)),
+			carla.Transform(carla.Location(x=0, z=10), carla.Rotation(pitch=-45.0, yaw=+90)),
 			vehicle,
 			{},
 			display_pos=[0, 2]
@@ -391,64 +401,34 @@ def run_simulation(args, client):
 			world,
 			display_manager,
 			'InstanceSegmentationCamera',
-			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)),
+			carla.Transform(carla.Location(x=-5, y=0, z=20), carla.Rotation(pitch=-45.0, yaw=-90)),
 			vehicle,
 			{},
 			display_pos=[1, 0]
 		)
-
 		SensorManager(
 			world,
 			display_manager,
-			'RGBCamera',
-			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=180)),
+			'InstanceSegmentationCamera',
+			carla.Transform(carla.Location(x=-5, y=0, z=20), carla.Rotation(pitch=-45.0, yaw=+00)),
 			vehicle,
 			{},
 			display_pos=[1, 1]
 		)
-
 		SensorManager(
 			world,
 			display_manager,
-			'DepthCamera',
-			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)),
+			'InstanceSegmentationCamera',
+			carla.Transform(carla.Location(x=-5, y=0, z=20), carla.Rotation(pitch=-45.0, yaw=+90)),
 			vehicle,
 			{},
 			display_pos=[1, 2]
 		)
 
-		SensorManager(
-			world,
-			display_manager,
-			'LiDAR',
-			carla.Transform(carla.Location(x=0, z=2.4)),
-			vehicle,
-			{'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'},
-			display_pos=[2, 0]
-		)
-
-		SensorManager(
-			world,
-			display_manager,
-			'SemanticSegmentationCamera',
-			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)),
-			vehicle,
-			{},
-			display_pos=[2, 1]
-		)
-
-		SensorManager(
-			world,
-			display_manager,
-			'SemanticLiDAR',
-			carla.Transform(carla.Location(x=0, z=2.4)),
-			vehicle,
-			{'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'},
-			display_pos=[2, 2]
-		)
 
 
-		#Simulation loop
+
+		# NOTE: Simulation loop
 		call_exit = False
 		time_init_sim = timer.time()
 		while True:
@@ -479,7 +459,6 @@ def run_simulation(args, client):
 		client.apply_batch([carla.command.DestroyActor(x) for x in vehicle_list])
 
 		world.apply_settings(original_settings)
-
 
 
 def main():
