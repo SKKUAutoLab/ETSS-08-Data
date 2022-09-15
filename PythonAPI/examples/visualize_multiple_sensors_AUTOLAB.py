@@ -27,6 +27,8 @@ except IndexError:
 	pass
 
 import carla
+from carla import ColorConverter as cc
+
 import argparse
 import random
 import time
@@ -92,6 +94,7 @@ class DisplayManager:
 	def render_enabled(self):
 		return self.display != None
 
+
 class SensorManager:
 	def __init__(self, world, display_man, sensor_type, transform, attached, sensor_options, display_pos):
 		self.surface = None
@@ -122,6 +125,49 @@ class SensorManager:
 
 			return camera
 
+		elif sensor_type == 'DepthCamera':
+
+			depth_bp = self.world.get_blueprint_library().find('sensor.camera.depth')
+			disp_size = self.display_man.get_display_size()
+			depth_bp.set_attribute('image_size_x', str(disp_size[0]))
+			depth_bp.set_attribute('image_size_y', str(disp_size[1]))
+
+			for key in sensor_options:
+				depth_bp.set_attribute(key, sensor_options[key])
+
+			depth = self.world.spawn_actor(depth_bp, transform, attach_to=attached)
+			depth.listen(self.save_depth_image)
+
+			return depth
+
+		elif sensor_type == 'InstanceSegmentationCamera':
+
+			insseg_bp = self.world.get_blueprint_library().find('sensor.camera.instance_segmentation')
+			disp_size = self.display_man.get_display_size()
+			insseg_bp.set_attribute('image_size_x', str(disp_size[0]))
+			insseg_bp.set_attribute('image_size_y', str(disp_size[1]))
+
+			for key in sensor_options:
+				insseg_bp.set_attribute(key, sensor_options[key])
+
+			insseg = self.world.spawn_actor(insseg_bp, transform, attach_to=attached)
+			insseg.listen(self.save_instance_segmentation_image)
+
+			return insseg
+
+		elif sensor_type == 'SemanticLiDAR':
+			lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
+			lidar_bp.set_attribute('range', '100')
+
+			for key in sensor_options:
+				lidar_bp.set_attribute(key, sensor_options[key])
+
+			lidar = self.world.spawn_actor(lidar_bp, transform, attach_to=attached)
+
+			lidar.listen(self.save_semanticlidar_image)
+
+			return lidar
+
 		elif sensor_type == 'LiDAR':
 			lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.ray_cast')
 			lidar_bp.set_attribute('range', '100')
@@ -138,34 +184,43 @@ class SensorManager:
 
 			return lidar
 
-		elif sensor_type == 'SemanticLiDAR':
-			lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
-			lidar_bp.set_attribute('range', '100')
-
-			for key in sensor_options:
-				lidar_bp.set_attribute(key, sensor_options[key])
-
-			lidar = self.world.spawn_actor(lidar_bp, transform, attach_to=attached)
-
-			lidar.listen(self.save_semanticlidar_image)
-
-			return lidar
-
-		elif sensor_type == "Radar":
-			radar_bp = self.world.get_blueprint_library().find('sensor.other.radar')
-			for key in sensor_options:
-				radar_bp.set_attribute(key, sensor_options[key])
-
-			radar = self.world.spawn_actor(radar_bp, transform, attach_to=attached)
-			radar.listen(self.save_radar_image)
-
-			return radar
-
 		else:
 			return None
 
 	def get_sensor(self):
 		return self.sensor
+
+	def save_instance_segmentation_image(self, image):
+		t_start = self.timer.time()
+
+		image.convert(carla.ColorConverter.Raw)
+		array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
+		array = np.reshape(array, (image.height, image.width, 4))
+		array = array[:, :, :3]
+		array = array[:, :, ::-1]
+
+		if self.display_man.render_enabled():
+			self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
+
+		t_end = self.timer.time()
+		self.time_processing += (t_end - t_start)
+		self.tics_processing += 1
+
+	def save_depth_image(self, image):
+		t_start = self.timer.time()
+
+		image.convert(carla.ColorConverter.LogarithmicDepth)
+		array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
+		array = np.reshape(array, (image.height, image.width, 4))
+		array = array[:, :, :3]
+		array = array[:, :, ::-1]
+
+		if self.display_man.render_enabled():
+			self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
+
+		t_end = self.timer.time()
+		self.time_processing += (t_end - t_start)
+		self.tics_processing += 1
 
 	def save_rgb_image(self, image):
 		t_start = self.timer.time()
@@ -285,23 +340,99 @@ def run_simulation(args, client):
 
 		# Display Manager organize all the sensors an its display in a window
 		# If can easily configure the grid and the total window size
-		display_manager = DisplayManager(grid_size=[2, 3], window_size=[args.width, args.height])
+		display_manager = DisplayManager(grid_size=[3, 3], window_size=[args.width, args.height])
 
 		# Then, SensorManager can be used to spawn RGBCamera, LiDARs and SemanticLiDARs as needed
 		# and assign each of them to a grid position,
-		SensorManager(world, display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=-90)),
-					  vehicle, {}, display_pos=[0, 0])
-		SensorManager(world, display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)),
-					  vehicle, {}, display_pos=[0, 1])
-		SensorManager(world, display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+90)),
-					  vehicle, {}, display_pos=[0, 2])
-		SensorManager(world, display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=180)),
-					  vehicle, {}, display_pos=[1, 1])
+		SensorManager(
+			world,
+			display_manager,
+			'RGBCamera',
+			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=-90)),
+			vehicle,
+			{},
+			display_pos=[0, 0]
+		)
+		SensorManager(
+			world,
+			display_manager,
+			'RGBCamera',
+			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)),
+			vehicle,
+			{},
+			display_pos=[0, 1]
+		)
+		SensorManager(
+			world,
+			display_manager,
+			'RGBCamera',
+			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+90)),
+			vehicle,
+			{},
+			display_pos=[0, 2]
+		)
+		SensorManager(
+			world,
+			display_manager,
+			'InstanceSegmentationCamera',
+			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)),
+			vehicle,
+			{},
+			display_pos=[1, 0]
+		)
 
-		SensorManager(world, display_manager, 'LiDAR', carla.Transform(carla.Location(x=0, z=2.4)),
-					  vehicle, {'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'}, display_pos=[1, 0])
-		SensorManager(world, display_manager, 'SemanticLiDAR', carla.Transform(carla.Location(x=0, z=2.4)),
-					  vehicle, {'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'}, display_pos=[1, 2])
+		SensorManager(
+			world,
+			display_manager,
+			'RGBCamera',
+			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=180)),
+			vehicle,
+			{},
+			display_pos=[1, 1]
+		)
+
+		SensorManager(
+			world,
+			display_manager,
+			'DepthCamera',
+			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)),
+			vehicle,
+			{},
+			display_pos=[1, 2]
+		)
+
+		SensorManager(
+			world,
+			display_manager,
+			'LiDAR',
+			carla.Transform(carla.Location(x=0, z=2.4)),
+			vehicle,
+			{'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'},
+			display_pos=[2, 0]
+		)
+
+		SensorManager(
+			world,
+			display_manager,
+			'RGBCamera',
+			carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)),
+			vehicle,
+			{'lens_circle_multiplier': '3.0',
+			 'lens_circle_falloff': '3.0',
+			 'chromatic_aberration_intensity': '0.5',
+			 'chromatic_aberration_offset': '0'},
+			display_pos=[2, 1]
+		)
+
+		SensorManager(
+			world,
+			display_manager,
+			'SemanticLiDAR',
+			carla.Transform(carla.Location(x=0, z=2.4)),
+			vehicle,
+			{'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'},
+			display_pos=[2, 2]
+		)
 
 
 		#Simulation loop
@@ -365,7 +496,7 @@ def main():
 	argparser.add_argument(
 		'--res',
 		metavar='WIDTHxHEIGHT',
-		default='1280x720',
+		default='1600x900',
 		help='window resolution (default: 1280x720)')
 
 	args = argparser.parse_args()
