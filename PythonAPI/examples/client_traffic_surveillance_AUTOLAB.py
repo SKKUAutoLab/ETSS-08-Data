@@ -326,10 +326,25 @@ class SensorManager:
 		self.sensor.destroy()
 
 
+def create_list_position():
+	# NOTE: Town10HD
+	list_position = [
+		carla.Transform(
+			carla.Location(x=-58.7, y=36.2, z=0.600000),
+			carla.Rotation(pitch=0.000000, yaw=-45.0, roll=0.000000)
+		)
+	]
+	return list_position
+
+
 def run_simulation(args, client):
-	"""This function performed one test run using the args parameters
+	"""
+	This function performed one test run using the args parameters
 	and connecting to the carla client passed.
 	"""
+
+	# NOTE: position for capture the dataset
+	list_position = create_list_position()
 
 	display_manager = None
 	vehicle = None
@@ -354,12 +369,7 @@ def run_simulation(args, client):
 		# NOTE: Instanciating the vehicle to which we attached the sensors
 		bp = world.get_blueprint_library().filter('vehicle.bh.crossbike')[0]  # Set vehicle
 		# vehicle = world.spawn_actor(bp, random.choice(world.get_map().get_spawn_points()))  # Set random position on map
-		vehicle = world.spawn_actor(bp,
-									carla.Transform(
-										carla.Location(x=-58.7, y=36.2, z=0.600000),
-										carla.Rotation(pitch=0.000000, yaw=-45.0, roll=0.000000)
-									)
-									)
+		vehicle = world.spawn_actor(bp, list_position[0])
 		vehicle_list.append(vehicle)
 		# vehicle.set_autopilot(True)  # Set autorun by AI
 
@@ -461,6 +471,20 @@ def run_simulation(args, client):
 		world.apply_settings(original_settings)
 
 
+def make_dir(path):
+	"""
+	Create folder (recursive)
+
+	Args:
+		path (str): path of folder which is need to be created
+	"""
+	try:
+		if not os.path.exists(path):
+			os.makedirs(path)
+	except FileExistsError:
+		return
+
+
 def main():
 	argparser = argparse.ArgumentParser(
 		description='CARLA Sensor tutorial')
@@ -495,6 +519,8 @@ def main():
 
 	args.width, args.height = [int(x) for x in args.res.split('x')]
 
+	# NOTE: create the folder for store dataset
+
 	try:
 		client = carla.Client(args.host, args.port)
 		client.set_timeout(5.0)
@@ -506,5 +532,4 @@ def main():
 
 
 if __name__ == '__main__':
-
 	main()
