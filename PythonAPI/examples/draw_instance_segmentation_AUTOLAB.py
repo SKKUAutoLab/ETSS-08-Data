@@ -10,9 +10,6 @@ from tqdm import tqdm
 
 
 def draw_instance(img_rgb_path, img_ins_path):
-	# DEBUG: set of id
-	# IDs = {10}
-
 	img_rgb = cv2.imread(img_rgb_path)
 	img_ins = cv2.imread(img_ins_path, cv2.IMREAD_UNCHANGED)  # IMREAD_UNCHANGED => open image with the alpha channel
 
@@ -22,8 +19,6 @@ def draw_instance(img_rgb_path, img_ins_path):
 			# print(img_ins[y, x, 2])
 			# print(img_ins[y, x])
 
-			# DEBUG:
-			# IDs.add(img_ins[y, x, 2])
 			if img_ins[y, x, 2] in [4, 10]:  # 4:pedestrian, 10:vehicles
 				overlay_color = img_ins[y, x, :3]  # first three elements are color (RGB)
 				overlay_alpha = 0.5  # 4th element is the alpha channel, convert from 0-255 to 0.0-1.0
@@ -36,9 +31,6 @@ def draw_instance(img_rgb_path, img_ins_path):
 
 				# update the background image in place
 				img_rgb[y, x] = composite_color
-
-	# DEBUG:
-	# print(IDs)
 
 	return img_rgb
 
