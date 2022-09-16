@@ -127,4 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Project
 .idea/
+.tss_out/
+*.jpg
+*.png

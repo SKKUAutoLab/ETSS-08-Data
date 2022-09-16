@@ -38,10 +38,10 @@ NUM_SEC_GET    = 1     # Get annotation per second
 SAVE_IMG       = True  # is save bounding box
 
 # NOTE: folder to store the result
-FOLDER_IMG_RGB   = "tss_out_rgb_img"
-FOLDER_IMG_INS   = "tss_out_ins_img"
-FOLDER_ANNO_BBOX = "tss_out_bbox"
-FOLDER_ANNO_INS  = "tss_out_ins"
+FOLDER_IMG_RGB   = "tss_out/tss_out_rgb_img"
+FOLDER_IMG_INS   = "tss_out/tss_out_ins_img"
+FOLDER_ANNO_BBOX = "tss_out/tss_out_bbox"
+FOLDER_ANNO_INS  = "tss_out/tss_out_ins"
 
 class CustomTimer:
 	def __init__(self):
