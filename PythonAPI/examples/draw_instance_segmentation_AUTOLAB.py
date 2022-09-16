@@ -6,6 +6,8 @@ import glob
 
 import cv2
 
+from tqdm import tqdm
+
 
 def draw_instance(img_rgb_path, img_ins_path):
 	# DEBUG: set of id
@@ -40,21 +42,21 @@ def draw_instance(img_rgb_path, img_ins_path):
 
 	return img_rgb
 
-	cv2.imshow(f"{os.path.basename(img_rgb_path)}", img_rgb)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	# cv2.imshow(f"{os.path.basename(img_rgb_path)}", img_rgb)
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 
 def main():
 	# This is needed to avoid strange crashes related to opencv
 	cv2.setNumThreads(0)
 
-	folder_img_rbg   = "PythonAPI/examples/tss_out/tss_out_rgb_img"
-	folder_img_ins   = "PythonAPI/examples/tss_out/tss_out_ins_img"
-	folder_img_drawn = "PythonAPI/examples/tss_out/tss_out_drawn"
+	folder_img_rbg   = "tss_out/tss_out_rgb_img"
+	folder_img_ins   = "tss_out/tss_out_ins_img"
+	folder_img_drawn = "tss_out/tss_out_drawn"
 
 	img_rgb_list   = glob.glob(os.path.join(folder_img_rbg, "*.jpg"))
 
-	for img_rgb_path in img_rgb_list:
+	for img_rgb_path in tqdm(img_rgb_list):
 		basename       = os.path.basename(img_rgb_path)
 		basename_noext = os.path.splitext(basename)[0]
 		img_ins_path   = os.path.join(folder_img_ins, f"{basename_noext}.png")
