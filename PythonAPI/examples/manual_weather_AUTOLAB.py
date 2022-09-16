@@ -79,12 +79,13 @@ class Weather(object):
 		self._sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle)
 		self._storm = Storm(weather.precipitation)
 
-		self.weather.cloudiness = 5.0  # Cloud
-		self.weather.precipitation_deposits = 100.0
-		self.weather.fog = 0.0
-		self.weather.rain = 0.0
-		self.weather.sun_azimuth_angle = 180.0  # Dong-Tay-Nam-Bac
-		self.weather.sun_altitude_angle = 90.0  # Sang-Trua-Chieu
+		self.weather.cloudiness             = 5.0  # Cloud
+		self.weather.precipitation_deposits = 0.0  # Precipitation deposits for controlling the area of puddles on roads. Values range from 0 to 100.
+		self.weather.fog                    = 0.0
+		self.weather.rain                   = 0.0
+		self.weather.sun_azimuth_angle      = 180.0  # Dong-Tay-Nam-Bac
+		self.weather.sun_altitude_angle     = -90.0  # Sang-Trua-Chieu
+		self.weather.wetness                = 0.0  # wet or dry 0.0 - 100.0
 
 	def tick(self, delta_seconds):
 		self._sun.tick(delta_seconds)
@@ -134,12 +135,13 @@ def main():
 	client.set_timeout(2.0)
 	world = client.get_world()
 
-	# weather = Weather(world.get_weather())
-	# elapsed_time = 0.0
-	# world.set_weather(weather.weather)
+	weather = Weather(world.get_weather())
+	elapsed_time = 0.0
+	world.set_weather(weather.weather)
 
+	# NOTE: setting weather bases on the standard value
 	# https://carla.readthedocs.io/en/0.8.4/carla_settings/
-	world.set_weather(getattr(carla.WeatherParameters, 'CloudyNoon'))  
+	# world.set_weather(getattr(carla.WeatherParameters, 'CloudyNoon'))  # Trua may mu
 
 	# while True:
 	# 	timestamp = world.wait_for_tick(seconds=30.0).timestamp

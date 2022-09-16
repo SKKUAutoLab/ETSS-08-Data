@@ -208,7 +208,7 @@ class SensorManager:
 	def save_semantic_segmentation_image(self, image):
 		t_start = self.timer.time()
 
-		image.convert(carla.ColorConverter.CityScapesPalette)
+		image.convert(carla.ColorConverter.Raw)
 		array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
 		array = np.reshape(array, (image.height, image.width, 4))
 		array = array[:, :, :3]

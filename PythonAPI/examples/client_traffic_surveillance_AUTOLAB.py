@@ -19,6 +19,7 @@ import random
 import time
 import numpy as np
 
+import cv2
 
 try:
 	import pygame
@@ -27,6 +28,20 @@ try:
 except ImportError:
 	raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
+# NOTE: Initiate display to show the result
+NUMBER_IMAGE   = 2000  # Number of image to get bounding box
+VIEW_WIDTH     = 1280  # Resolution width of dataset
+VIEW_HEIGHT    = 720   # Resolution height of dataset
+VIEW_FOV       = 90    # Field of view
+FPS            = 20    # Frame per second
+NUM_SEC_GET    = 1     # Get annotation per second
+SAVE_IMG       = True  # is save bounding box
+
+# NOTE: folder to store the result
+FOLDER_IMG_RGB   = "tss_out_rgb_img"
+FOLDER_IMG_INS   = "tss_out_ins_img"
+FOLDER_ANNO_BBOX = "tss_out_bbox"
+FOLDER_ANNO_INS  = "tss_out_ins"
 
 class CustomTimer:
 	def __init__(self):
@@ -45,7 +60,7 @@ class DisplayManager:
 		pygame.font.init()
 		self.display = pygame.display.set_mode(window_size, pygame.HWSURFACE | pygame.DOUBLEBUF)
 
-		self.grid_size = grid_size
+		self.grid_size   = grid_size
 		self.window_size = window_size
 		self.sensor_list = []
 
@@ -84,25 +99,30 @@ class DisplayManager:
 
 class SensorManager:
 	def __init__(self, world, display_man, sensor_type, transform, attached, sensor_options, display_pos):
-		self.surface = None
-		self.world = world
-		self.display_man = display_man
-		self.display_pos = display_pos
-		self.sensor = self.init_sensor(sensor_type, transform, attached, sensor_options)
+		self.surface        = None
+		self.world          = world
+		self.display_man    = display_man
+		self.display_pos    = display_pos
+		self.sensor         = self.init_sensor(sensor_type, transform, attached, sensor_options)
 		self.sensor_options = sensor_options
-		self.timer = CustomTimer()
+		self.timer          = CustomTimer()
 
 		self.time_processing = 0.0
 		self.tics_processing = 0
 
 		self.display_man.add_sensor(self)
 
+		self.current_num_img = 0  # number of image have been saved
+
 	def init_sensor(self, sensor_type, transform, attached, sensor_options):
+		self.disp_size = self.display_man.get_display_size()
 		if sensor_type == 'RGBCamera':
 			camera_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
-			disp_size = self.display_man.get_display_size()
-			camera_bp.set_attribute('image_size_x', str(disp_size[0]))
-			camera_bp.set_attribute('image_size_y', str(disp_size[1]))
+			# camera_bp.set_attribute('image_size_x', str(self.disp_size[0]))  # Get the size based on the grid
+			# camera_bp.set_attribute('image_size_y', str(self.disp_size[1]))  # Get the size based on the grid
+
+			camera_bp.set_attribute('image_size_x', str(VIEW_WIDTH))
+			camera_bp.set_attribute('image_size_y', str(VIEW_HEIGHT))
 
 			for key in sensor_options:
 				camera_bp.set_attribute(key, sensor_options[key])
@@ -113,11 +133,9 @@ class SensorManager:
 			return camera
 
 		elif sensor_type == 'DepthCamera':
-
 			depth_bp = self.world.get_blueprint_library().find('sensor.camera.depth')
-			disp_size = self.display_man.get_display_size()
-			depth_bp.set_attribute('image_size_x', str(disp_size[0]))
-			depth_bp.set_attribute('image_size_y', str(disp_size[1]))
+			depth_bp.set_attribute('image_size_x', str(self.disp_size[0]))
+			depth_bp.set_attribute('image_size_y', str(self.disp_size[1]))
 
 			for key in sensor_options:
 				depth_bp.set_attribute(key, sensor_options[key])
@@ -128,11 +146,12 @@ class SensorManager:
 			return depth
 
 		elif sensor_type == 'InstanceSegmentationCamera':
-
 			insseg_bp = self.world.get_blueprint_library().find('sensor.camera.instance_segmentation')
-			disp_size = self.display_man.get_display_size()
-			insseg_bp.set_attribute('image_size_x', str(disp_size[0]))
-			insseg_bp.set_attribute('image_size_y', str(disp_size[1]))
+			# insseg_bp.set_attribute('image_size_x', str(self.disp_size[0]))
+			# insseg_bp.set_attribute('image_size_y', str(self.disp_size[1]))
+
+			insseg_bp.set_attribute('image_size_x', str(self.display_man.window_size[0]))
+			insseg_bp.set_attribute('image_size_y', str(self.display_man.window_size[1]))
 
 			for key in sensor_options:
 				insseg_bp.set_attribute(key, sensor_options[key])
@@ -143,11 +162,9 @@ class SensorManager:
 			return insseg
 
 		elif sensor_type == 'SemanticSegmentationCamera':
-
 			semseg_bp = self.world.get_blueprint_library().find('sensor.camera.instance_segmentation')
-			disp_size = self.display_man.get_display_size()
-			semseg_bp.set_attribute('image_size_x', str(disp_size[0]))
-			semseg_bp.set_attribute('image_size_y', str(disp_size[1]))
+			semseg_bp.set_attribute('image_size_x', str(self.disp_size[0]))
+			semseg_bp.set_attribute('image_size_y', str(self.disp_size[1]))
 
 			for key in sensor_options:
 				semseg_bp.set_attribute(key, sensor_options[key])
@@ -214,8 +231,18 @@ class SensorManager:
 		image.convert(carla.ColorConverter.Raw)
 		array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
 		array = np.reshape(array, (image.height, image.width, 4))
+
+		# NOTE: save image
+		if self.current_num_img < NUMBER_IMAGE:
+			if self.tics_processing % (FPS // NUM_SEC_GET) == 0:
+				self.current_num_img = self.current_num_img + 1
+				cv2.imwrite(f"{FOLDER_IMG_INS}/{self.tics_processing:08d}.jpg", array)
+
 		array = array[:, :, :3]
 		array = array[:, :, ::-1]
+
+		# NOTE: resize array for display
+		array = cv2.resize(array, (self.disp_size[0], self.disp_size[1]), interpolation=cv2.INTER_AREA)
 
 		if self.display_man.render_enabled():
 			self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
@@ -246,8 +273,20 @@ class SensorManager:
 		image.convert(carla.ColorConverter.Raw)
 		array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
 		array = np.reshape(array, (image.height, image.width, 4))
+
+		# NOTE: save image
+		if self.current_num_img < NUMBER_IMAGE:
+			if self.tics_processing % (FPS // NUM_SEC_GET) == 0:
+				self.current_num_img = self.current_num_img + 1
+				cv2.imwrite(f"{FOLDER_IMG_RGB}/{self.tics_processing:08d}.jpg", array)
+		else:
+			print("FINISH CAPTURING")
+
 		array = array[:, :, :3]
 		array = array[:, :, ::-1]
+
+		# NOTE: resize array for display
+		array = cv2.resize(array, (self.disp_size[0], self.disp_size[1]), interpolation=cv2.INTER_AREA)
 
 		if self.display_man.render_enabled():
 			self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
@@ -277,6 +316,10 @@ class SensorManager:
 
 		if self.display_man.render_enabled():
 			self.surface = pygame.surfarray.make_surface(lidar_img)
+
+		# DEBUG:
+		# if self.tics_processing % 30 == 0:
+		# 	print(f"{self.tics_processing}")
 
 		t_end = self.timer.time()
 		self.time_processing += (t_end-t_start)
@@ -362,7 +405,7 @@ def run_simulation(args, client):
 			settings = world.get_settings()
 			traffic_manager.set_synchronous_mode(True)
 			settings.synchronous_mode = True
-			settings.fixed_delta_seconds = 0.05
+			settings.fixed_delta_seconds = 1 / FPS
 			world.apply_settings(settings)
 
 
@@ -375,16 +418,17 @@ def run_simulation(args, client):
 
 		# NOTE: Display Manager organize all the sensors an its display in a window
 		# If can easily configure the grid and the total window size
-		display_manager = DisplayManager(grid_size=[2, 3], window_size=[args.width, args.height])
+		display_manager = DisplayManager(grid_size=[1, 2], window_size=[args.width, args.height])
 
 		# NOTE: setup all the sensors from the vehicle
 		# Then, SensorManager can be used to spawn RGBCamera, LiDARs and SemanticLiDARs as needed
 		# and assign each of them to a grid position,
+
 		SensorManager(
 			world,
 			display_manager,
 			'RGBCamera',
-			carla.Transform(carla.Location(x=0, z=10), carla.Rotation(pitch=-45.0, yaw=-90)),
+			carla.Transform(carla.Location(x=-10, y=0, z=25), carla.Rotation(pitch=-45.0, yaw=+00)),
 			vehicle,
 			{},
 			display_pos=[0, 0]
@@ -392,51 +436,12 @@ def run_simulation(args, client):
 		SensorManager(
 			world,
 			display_manager,
-			'RGBCamera',
-			carla.Transform(carla.Location(x=-5, y=0, z=20), carla.Rotation(pitch=-45.0, yaw=+00)),
+			'InstanceSegmentationCamera',
+			carla.Transform(carla.Location(x=-10, y=0, z=25), carla.Rotation(pitch=-45.0, yaw=+00)),
 			vehicle,
 			{},
 			display_pos=[0, 1]
 		)
-		SensorManager(
-			world,
-			display_manager,
-			'RGBCamera',
-			carla.Transform(carla.Location(x=0, z=10), carla.Rotation(pitch=-45.0, yaw=+90)),
-			vehicle,
-			{},
-			display_pos=[0, 2]
-		)
-		SensorManager(
-			world,
-			display_manager,
-			'InstanceSegmentationCamera',
-			carla.Transform(carla.Location(x=-5, y=0, z=20), carla.Rotation(pitch=-45.0, yaw=-90)),
-			vehicle,
-			{},
-			display_pos=[1, 0]
-		)
-		SensorManager(
-			world,
-			display_manager,
-			'InstanceSegmentationCamera',
-			carla.Transform(carla.Location(x=-5, y=0, z=20), carla.Rotation(pitch=-45.0, yaw=+00)),
-			vehicle,
-			{},
-			display_pos=[1, 1]
-		)
-		SensorManager(
-			world,
-			display_manager,
-			'InstanceSegmentationCamera',
-			carla.Transform(carla.Location(x=-5, y=0, z=20), carla.Rotation(pitch=-45.0, yaw=+90)),
-			vehicle,
-			{},
-			display_pos=[1, 2]
-		)
-
-
-
 
 		# NOTE: Simulation loop
 		call_exit = False
@@ -509,18 +514,19 @@ def main():
 		action='store_false',
 		help='Asynchronous mode execution')
 	argparser.set_defaults(sync=True)
-	argparser.add_argument(
-		'--res',
-		metavar='WIDTHxHEIGHT',
-		default='1600x900',
-		help='window resolution (default: 1280x720)')
 
 	args = argparser.parse_args()
 
-	args.width, args.height = [int(x) for x in args.res.split('x')]
+	args.width  = int(VIEW_WIDTH)
+	args.height = int(VIEW_HEIGHT)
 
 	# NOTE: create the folder for store dataset
+	make_dir(FOLDER_IMG_RGB)
+	make_dir(FOLDER_IMG_INS)
+	make_dir(FOLDER_ANNO_BBOX)
+	make_dir(FOLDER_ANNO_INS)
 
+	# NOTE: run the capture
 	try:
 		client = carla.Client(args.host, args.port)
 		client.set_timeout(5.0)
