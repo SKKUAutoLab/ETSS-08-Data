@@ -100,8 +100,6 @@ class Weather(object):
 		self.weather.sun_azimuth_angle = self._sun.azimuth
 		self.weather.sun_altitude_angle = self._sun.altitude
 
-
-
 	def __str__(self):
 		return '%s %s' % (self._sun, self._storm)
 

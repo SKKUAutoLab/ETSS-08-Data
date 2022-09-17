@@ -12,8 +12,8 @@ import cv2
 from tqdm import tqdm
 
 annotation_class = {
-	'vehicle': 0,
-	'pedestrian': 1
+	'vehicle'   : 10,
+	'pedestrian': 4
 }
 
 
@@ -26,15 +26,18 @@ class NumpyEncoder(json.JSONEncoder):
 
 def create_annotations(segs):
 	annos = []
+	ids   = []
 	for key, value in segs.items():
-		if len(value) > 10:   # The minimum number of point for segmentation
-			arrary_value = np.array(value)
-			anno = []
-			hull = ConvexHull(arrary_value)
+		if len(value["segment"]) > 10:   # The minimum number of point for segmentation
+			arrary_value = np.array(value["segment"])
+			id_un = value["class_id"]
+			anno  = []
+			hull  = ConvexHull(arrary_value)
 			for simplex in hull.simplices:
 				anno.append(arrary_value[simplex, 0])
 			annos.append(anno)
-	return annos
+			ids.append(id_un)
+	return annos, ids
 
 
 def compare_color(pixel_1, pixel_2):
@@ -63,9 +66,12 @@ def extract_instance(img_rgb_path, img_ins_path):
 
 				# Create the new one if it is not exist
 				if f"{img_ins[y, x, 0]}_{img_ins[y, x, 1]}" not in segs:
-					segs[f"{img_ins[y, x, 0]}_{img_ins[y, x, 1]}"] = []
+					segs[f"{img_ins[y, x, 0]}_{img_ins[y, x, 1]}"] = {
+						"class_id" : img_ins[y, x, 2],
+						"segment"  : [],
+					}
 
-				segs[f"{img_ins[y, x, 0]}_{img_ins[y, x, 1]}"].append([y, x])
+				segs[f"{img_ins[y, x, 0]}_{img_ins[y, x, 1]}"]["segment"].append([y, x])
 
 	return segs
 
@@ -87,12 +93,13 @@ def main():
 		anno_ins_path  = os.path.join(folder_anno_ins, f"{basename_noext}.txt")
 
 		if os.path.exists(img_ins_path):
-			segs  = extract_instance(img_rgb_path, img_ins_path)
-			annos = create_annotations(segs)
+			segs       = extract_instance(img_rgb_path, img_ins_path)
+			annos, ids = create_annotations(segs)
 
 			# NOTE: output annotations
 			with open(anno_ins_path, "w") as f:
-				for anno in annos:
+				for anno, id_un in zip(annos, ids):
+					f.write(f"{id_un} ")
 					for point in anno:
 						f.write(f"{point[0]} {point[1]} ")
 					f.write("\n")
