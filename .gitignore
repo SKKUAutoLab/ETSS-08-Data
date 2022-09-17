@@ -131,6 +131,7 @@ dmypy.json
 # Project
 .idea/
 .tss_out/
+/PythonAPI/examples/tss_out/
 
 # Some extensions
 *.jpeg
@@ -139,3 +140,4 @@ dmypy.json
 *.avi
 *.mp3
 *.mp4
+
