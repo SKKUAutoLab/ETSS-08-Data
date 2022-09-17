@@ -17,6 +17,10 @@ def extract_instance(img_rgb_path, img_ins_path):
 	img_rgb = cv2.imread(img_rgb_path)
 	img_ins = cv2.imread(img_ins_path, cv2.IMREAD_UNCHANGED)  # IMREAD_UNCHANGED => open image with the alpha channel
 
+	height, width = img_ins.shape[:2]
+	for y in range(height):
+		for x in range(width):
+			pass
 
 def main():
 	# This is needed to avoid strange crashes related to opencv

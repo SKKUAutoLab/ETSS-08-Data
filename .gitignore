@@ -136,3 +136,6 @@ dmypy.json
 *.jpeg
 *.jpg
 *.png
+*.avi
+*.mp3
+*.mp4
