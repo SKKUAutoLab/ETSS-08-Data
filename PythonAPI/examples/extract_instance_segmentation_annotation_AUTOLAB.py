@@ -33,8 +33,10 @@ def create_annotations(segs):
 			id_un = value["class_id"]
 			anno  = []
 			hull  = ConvexHull(arrary_value)
-			for simplex in hull.simplices:
-				anno.append(arrary_value[simplex, 0])
+			for points in hull.points:
+				anno.append(points)
+			# DEBUG:
+			# print(hull.points)
 			annos.append(anno)
 			ids.append(id_un)
 	return annos, ids
@@ -63,15 +65,19 @@ def extract_instance(img_rgb_path, img_ins_path):
 
 			# NOTE: processing each ID after finding one
 			if img_ins[y, x, 2] in [4, 10]:
+				key_seg = f"{img_ins[y, x, 0]}_{img_ins[y, x, 1]}"
 
 				# Create the new one if it is not exist
-				if f"{img_ins[y, x, 0]}_{img_ins[y, x, 1]}" not in segs:
-					segs[f"{img_ins[y, x, 0]}_{img_ins[y, x, 1]}"] = {
+				if key_seg not in segs:
+					segs[key_seg] = {
 						"class_id" : img_ins[y, x, 2],
 						"segment"  : [],
 					}
 
-				segs[f"{img_ins[y, x, 0]}_{img_ins[y, x, 1]}"]["segment"].append([y, x])
+				segs[key_seg]["segment"].append([x, y])
+
+	# DEBUG:
+	# print(segs)
 
 	return segs
 
@@ -101,8 +107,11 @@ def main():
 				for anno, id_un in zip(annos, ids):
 					f.write(f"{id_un} ")
 					for point in anno:
-						f.write(f"{point[0]} {point[1]} ")
+						f.write(f"{int(point[0])} {int(point[1])} ")
 					f.write("\n")
+
+		# DEBUG:
+		# break
 
 
 if __name__ == "__main__":

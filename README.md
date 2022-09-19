@@ -3,8 +3,4 @@ Traffic Surveillance Data Generation capable of producing various environment re
 
 ![gif](images/traffic_surveillance_intersection.gif)
 
-## Datasets
-
-
-
-## Citation  
+[INSTRUCTION](/Instruction.md)
