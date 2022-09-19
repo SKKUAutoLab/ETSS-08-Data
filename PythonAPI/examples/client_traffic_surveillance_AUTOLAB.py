@@ -34,7 +34,7 @@ VIEW_WIDTH     = 1280  # Resolution width of dataset
 VIEW_HEIGHT    = 720   # Resolution height of dataset
 FPS            = 20    # Frame per second
 NUM_SEC_GET    = 1     # Get annotation per second
-SAVE_IMG       = True  # is save bounding box
+SAVE_IMG       = False # is save bounding box
 
 # NOTE: folder to store the result
 FOLDER_IMG_RGB   = "tss_out/tss_out_rgb_img"
@@ -232,10 +232,11 @@ class SensorManager:
 		array = np.reshape(array, (image.height, image.width, 4))
 
 		# NOTE: save image
-		if self.current_num_img < NUMBER_IMAGE:
-			if self.tics_processing % (FPS // NUM_SEC_GET) == 0:
-				self.current_num_img = self.current_num_img + 1
-				cv2.imwrite(f"{FOLDER_IMG_INS}/{self.tics_processing:08d}.jpg", array)
+		if SAVE_IMG:
+			if self.current_num_img < NUMBER_IMAGE:
+				if self.tics_processing % (FPS // NUM_SEC_GET) == 0:
+					self.current_num_img = self.current_num_img + 1
+					cv2.imwrite(f"{FOLDER_IMG_INS}/{self.tics_processing:08d}.jpg", array)
 
 		array = array[:, :, :3]
 		array = array[:, :, ::-1]
@@ -274,12 +275,13 @@ class SensorManager:
 		array = np.reshape(array, (image.height, image.width, 4))
 
 		# NOTE: save image
-		if self.current_num_img < NUMBER_IMAGE:
-			if self.tics_processing % (FPS // NUM_SEC_GET) == 0:
-				self.current_num_img = self.current_num_img + 1
-				cv2.imwrite(f"{FOLDER_IMG_RGB}/{self.tics_processing:08d}.jpg", array)
-		else:
-			print("FINISH CAPTURING")
+		if SAVE_IMG:
+			if self.current_num_img < NUMBER_IMAGE:
+				if self.tics_processing % (FPS // NUM_SEC_GET) == 0:
+					self.current_num_img = self.current_num_img + 1
+					cv2.imwrite(f"{FOLDER_IMG_RGB}/{self.tics_processing:08d}.jpg", array)
+			else:
+				print("FINISH CAPTURING")
 
 		array = array[:, :, :3]
 		array = array[:, :, ::-1]
@@ -368,15 +370,19 @@ class SensorManager:
 		self.sensor.destroy()
 
 
-def create_list_position():
+def create_list_location_on_town():
 	# NOTE: Town10HD
-	list_position = [
+	list_location = [
+		carla.Transform(
+			carla.Location(x=-53.3, y=145.8, z=0.600000),
+			carla.Rotation(pitch=0.000000, yaw=-45.0, roll=0.000000)
+		),
 		carla.Transform(
 			carla.Location(x=-58.7, y=36.2, z=0.600000),
 			carla.Rotation(pitch=0.000000, yaw=-45.0, roll=0.000000)
 		)
 	]
-	return list_position
+	return list_location
 
 
 def run_simulation(args, client):
@@ -385,8 +391,9 @@ def run_simulation(args, client):
 	and connecting to the carla client passed.
 	"""
 
-	# NOTE: position for capture the dataset
-	list_position = create_list_position()
+	# NOTE: location and position for capture the dataset
+	list_location   = create_list_location_on_town()
+	camera_position = carla.Transform(carla.Location(x=0, y=5, z=15), carla.Rotation(pitch=-45.0, yaw=-45))
 
 	display_manager = None
 	vehicle = None
@@ -411,7 +418,7 @@ def run_simulation(args, client):
 		# NOTE: Instanciating the vehicle to which we attached the sensors
 		bp = world.get_blueprint_library().filter('vehicle.bh.crossbike')[0]  # Set vehicle
 		# vehicle = world.spawn_actor(bp, random.choice(world.get_map().get_spawn_points()))  # Set random position on map
-		vehicle = world.spawn_actor(bp, list_position[0])
+		vehicle = world.spawn_actor(bp, list_location[0])
 		vehicle_list.append(vehicle)
 		# vehicle.set_autopilot(True)  # Set autorun by AI
 
@@ -427,7 +434,7 @@ def run_simulation(args, client):
 			world,
 			display_manager,
 			'RGBCamera',
-			carla.Transform(carla.Location(x=-10, y=0, z=25), carla.Rotation(pitch=-45.0, yaw=+00)),
+			camera_position,
 			vehicle,
 			{},
 			display_pos=[0, 0]
@@ -436,7 +443,7 @@ def run_simulation(args, client):
 			world,
 			display_manager,
 			'InstanceSegmentationCamera',
-			carla.Transform(carla.Location(x=-10, y=0, z=25), carla.Rotation(pitch=-45.0, yaw=+00)),
+			camera_position,
 			vehicle,
 			{},
 			display_pos=[0, 1]
