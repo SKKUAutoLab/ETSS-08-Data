@@ -134,7 +134,6 @@ dmypy.json
 /PythonAPI/examples/tss_out/
 
 # Some extensions
-*.jpeg
 *.jpg
 *.png
 *.avi
