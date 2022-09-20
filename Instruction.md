@@ -81,11 +81,12 @@ python client_traffic_surveillance_AUTOLAB.py
 And the image would be stored in these folder:
 
 ```
-├── tss_out_bbox
-├── tss_out_drawn
-├── tss_out_ins
-├── tss_out_ins_img
-└── tss_out_rgb_img
+├── tss_out
+│   ├── tss_out_bbox
+│   ├── tss_out_drawn
+│   ├── tss_out_ins
+│   ├── tss_out_ins_img
+│   └── tss_out_rgb_img
 ```
 
 ## IV. Converting the dataset
