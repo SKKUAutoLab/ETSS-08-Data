@@ -25,21 +25,29 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 def create_annotations(segs):
-	annos = []
-	ids   = []
+	inses  = []
+	bboxes = []
+	ids    = []
 	for key, value in segs.items():
 		if len(value["segment"]) > 10:   # The minimum number of point for segmentation
 			arrary_value = np.array(value["segment"])
 			id_un = value["class_id"]
-			anno  = []
+			ins   = []
 			hull  = ConvexHull(arrary_value)
+
 			for points in hull.points:
-				anno.append(points)
-			# DEBUG:
-			# print(hull.points)
-			annos.append(anno)
+				ins.append(points)
+			ins = np.array(ins)
+
+			x_min = min(ins[:, 0])
+			y_min = min(ins[:, 1])
+			x_max = max(ins[:, 0])
+			y_max = max(ins[:, 1])
+
+			inses.append(ins)
+			bboxes.append([x_min, y_min, x_max, y_max])
 			ids.append(id_un)
-	return annos, ids
+	return ids, inses, bboxes
 
 
 def compare_color(pixel_1, pixel_2):
@@ -86,29 +94,37 @@ def main():
 	# This is needed to avoid strange crashes related to opencv
 	cv2.setNumThreads(0)
 
-	folder_img_rbg  = "tss_out/tss_out_rgb_img"
-	folder_img_ins  = "tss_out/tss_out_ins_img"
-	folder_anno_ins = "tss_out/tss_out_ins"
+	folder_img_rbg   = "tss_out/tss_out_rgb_img"
+	folder_img_ins   = "tss_out/tss_out_ins_img"
+	folder_anno_ins  = "tss_out/tss_out_ins"
+	folder_anno_bbox = "tss_out/tss_out_bbox"
 
 	img_rgb_list = glob.glob(os.path.join(folder_img_rbg, "*.jpg"))
 
 	for img_rgb_path in tqdm(img_rgb_list):
-		basename       = os.path.basename(img_rgb_path)
-		basename_noext = os.path.splitext(basename)[0]
-		img_ins_path   = os.path.join(folder_img_ins, f"{basename_noext}.png")
-		anno_ins_path  = os.path.join(folder_anno_ins, f"{basename_noext}.txt")
+		basename        = os.path.basename(img_rgb_path)
+		basename_noext  = os.path.splitext(basename)[0]
+		img_ins_path    = os.path.join(folder_img_ins, f"{basename_noext}.png")
+		anno_ins_path   = os.path.join(folder_anno_ins, f"{basename_noext}.txt")
+		anno_bbox_path  = os.path.join(folder_anno_bbox, f"{basename_noext}.txt")
 
 		if os.path.exists(img_ins_path):
-			segs       = extract_instance(img_rgb_path, img_ins_path)
-			annos, ids = create_annotations(segs)
+			segs                = extract_instance(img_rgb_path, img_ins_path)
+			ids, inses, bboxes  = create_annotations(segs)
 
-			# NOTE: output annotations
+			# NOTE: output instance annotations
 			with open(anno_ins_path, "w") as f:
-				for anno, id_un in zip(annos, ids):
+				for anno, id_un in zip(inses, ids):
 					f.write(f"{id_un} ")
 					for point in anno:
 						f.write(f"{int(point[0])} {int(point[1])} ")
 					f.write("\n")
+
+			# NOTE: output bounding box annotations
+			with open(anno_bbox_path, "w") as f:
+				for anno, id_un in zip(bboxes, ids):
+					f.write(f"{id_un} ")
+					f.write(f"{int(anno[0])} {int(anno[1])} {int(anno[2])} {int(anno[3])}\n")
 
 		# DEBUG:
 		# break

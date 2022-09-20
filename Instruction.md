@@ -60,6 +60,12 @@ Finally, we find the right position of camera like this.
 
 ## III. Capturing the raw image and segmentation image
 
+Change the weather to nighttime:
+
+```shell
+python manual_weather_AUTOLAB.py
+```
+
 Change the value in "client_traffic_surveillance_AUTOLAB.py" to set the file could be capturing:
 
 ```python
@@ -98,3 +104,9 @@ python draw_from_txt_instance_segmentation_AUTOLAB.py
 ```
 
 ![gif](images/00000120.jpeg)
+
+## V. Location of map
+
+### a. Town10DH
+
+![gif](images/Town10HD.jpeg)
