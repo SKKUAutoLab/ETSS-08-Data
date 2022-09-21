@@ -95,7 +95,7 @@ After getting the image, we convert the image into instance segmentation and coc
 Run the extraction command:
 
 ```shell
-python client_traffic_surveillance_AUTOLAB.py
+python extract_instance_segmentation_annotation_AUTOLAB.py
 ```
 
 Visualize the instance after extraction:
