@@ -7,6 +7,7 @@ import json
 
 import numpy as np
 from scipy.spatial import ConvexHull
+from scipy.spatial.qhull import QhullError
 import cv2
 
 from tqdm import tqdm
@@ -33,7 +34,12 @@ def create_annotations(segs):
 			arrary_value = np.array(value["segment"])
 			id_un = value["class_id"]
 			ins   = []
-			hull  = ConvexHull(arrary_value)
+
+			try:
+				hull  = ConvexHull(arrary_value)
+			except:
+				continue
+
 
 			for points in hull.points:
 				ins.append(points)
