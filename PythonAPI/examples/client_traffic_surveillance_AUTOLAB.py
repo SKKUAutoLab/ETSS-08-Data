@@ -41,6 +41,7 @@ FOLDER_IMG_RGB   = "tss_out/tss_out_rgb_img"
 FOLDER_IMG_INS   = "tss_out/tss_out_ins_img"
 FOLDER_ANNO_BBOX = "tss_out/tss_out_bbox"
 FOLDER_ANNO_INS  = "tss_out/tss_out_ins"
+FOLDER_DRAW      = "tss_out/tss_out_drawn"
 
 class CustomTimer:
 	def __init__(self):
@@ -531,6 +532,7 @@ def main():
 	make_dir(FOLDER_IMG_INS)
 	make_dir(FOLDER_ANNO_BBOX)
 	make_dir(FOLDER_ANNO_INS)
+	make_dir(FOLDER_DRAW)
 
 	# NOTE: run the capture
 	try:
