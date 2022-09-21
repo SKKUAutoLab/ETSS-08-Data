@@ -236,7 +236,7 @@ class SensorManager:
 			if self.current_num_img < NUMBER_IMAGE:
 				if self.tics_processing % (FPS // NUM_SEC_GET) == 0:
 					self.current_num_img = self.current_num_img + 1
-					cv2.imwrite(f"{FOLDER_IMG_INS}/{self.tics_processing:08d}.jpg", array)
+					cv2.imwrite(f"{FOLDER_IMG_INS}/{self.tics_processing:08d}.png", array)
 
 		array = array[:, :, :3]
 		array = array[:, :, ::-1]
