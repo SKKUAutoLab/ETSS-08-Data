@@ -14,11 +14,12 @@ import cv2
 
 from tqdm import tqdm
 
-folder_img_rbg   = "tss_out/tss_out_rgb_img"
-folder_img_ins   = "tss_out/tss_out_ins_img"
-folder_anno_ins  = "tss_out/tss_out_ins"
-folder_anno_bbox = "tss_out/tss_out_bbox"
-number_of_thread = 4
+location          = "tss_out"
+folder_img_rbg    = f"{location}/tss_out_rgb_img"
+folder_img_ins    = f"{location}/tss_out_ins_img"
+folder_anno_ins   = f"{location}/tss_out_ins"
+folder_anno_bbox  = f"{location}/tss_out_bbox"
+number_of_process = 4
 
 annotation_class = {
 	'vehicle'   : 10,
@@ -111,7 +112,8 @@ def divide_chunks(l, n):
 
 
 def extract_instance_segmentation(img_rgb_list):
-	for img_rgb_path in tqdm(img_rgb_list):
+
+	for img_rgb_path in tqdm(img_rgb_list, desc=f""):
 		basename        = os.path.basename(img_rgb_path)
 		basename_noext  = os.path.splitext(basename)[0]
 		img_ins_path    = os.path.join(folder_img_ins, f"{basename_noext}.png")
@@ -145,7 +147,7 @@ def main():
 	cv2.setNumThreads(0)
 
 	img_rgb_list = glob.glob(os.path.join(folder_img_rbg, "*.jpg"))
-	img_rgb_lists = list(divide_chunks(img_rgb_list, len(img_rgb_list) // number_of_thread))
+	img_rgb_lists = list(divide_chunks(img_rgb_list, len(img_rgb_list) // number_of_process))
 
 	# NOTE: Define threads
 	# threads = []
@@ -166,12 +168,16 @@ def main():
 		processes.append(Process(target=extract_instance_segmentation, args=(rgb_list,)))
 
 	# NOTE: Start processes
+	print(f"{len(processes)} processes are running")
 	for process in processes:
 		process.start()
 
 	# NOTE: Wait all processes stop
 	for process in processes:
 		process.join()
+
+	print(f"{len(processes)} processes finished")
+
 
 if __name__ == "__main__":
 	main()
