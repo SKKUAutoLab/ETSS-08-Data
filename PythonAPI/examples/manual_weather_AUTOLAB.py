@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-"""
-Author: T.N.N Duong and P.H.Long
-"""
-
 import glob
 import os
 import sys

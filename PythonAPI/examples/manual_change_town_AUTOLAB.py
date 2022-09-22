@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-
-
-
 import glob
 import os
 import sys
