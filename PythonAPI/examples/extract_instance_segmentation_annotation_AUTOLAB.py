@@ -4,6 +4,8 @@ import sys
 import os
 import glob
 import json
+import threading
+from multiprocessing import Process
 
 import numpy as np
 from scipy.spatial import ConvexHull
@@ -11,6 +13,12 @@ from scipy.spatial.qhull import QhullError
 import cv2
 
 from tqdm import tqdm
+
+folder_img_rbg   = "tss_out/tss_out_rgb_img"
+folder_img_ins   = "tss_out/tss_out_ins_img"
+folder_anno_ins  = "tss_out/tss_out_ins"
+folder_anno_bbox = "tss_out/tss_out_bbox"
+number_of_thread = 4
 
 annotation_class = {
 	'vehicle'   : 10,
@@ -96,17 +104,13 @@ def extract_instance(img_rgb_path, img_ins_path):
 	return segs
 
 
-def main():
-	# This is needed to avoid strange crashes related to opencv
-	cv2.setNumThreads(0)
+def divide_chunks(l, n):
+	# looping till length l
+	for i in range(0, len(l), n):
+		yield l[i:i + n]
 
-	folder_img_rbg   = "tss_out/tss_out_rgb_img"
-	folder_img_ins   = "tss_out/tss_out_ins_img"
-	folder_anno_ins  = "tss_out/tss_out_ins"
-	folder_anno_bbox = "tss_out/tss_out_bbox"
 
-	img_rgb_list = glob.glob(os.path.join(folder_img_rbg, "*.jpg"))
-
+def extract_instance_segmentation(img_rgb_list):
 	for img_rgb_path in tqdm(img_rgb_list):
 		basename        = os.path.basename(img_rgb_path)
 		basename_noext  = os.path.splitext(basename)[0]
@@ -135,6 +139,39 @@ def main():
 		# DEBUG:
 		# break
 
+
+def main():
+	# This is needed to avoid strange crashes related to opencv
+	cv2.setNumThreads(0)
+
+	img_rgb_list = glob.glob(os.path.join(folder_img_rbg, "*.jpg"))
+	img_rgb_lists = list(divide_chunks(img_rgb_list, len(img_rgb_list) // number_of_thread))
+
+	# NOTE: Define threads
+	# threads = []
+	# for rgb_list in img_rgb_lists:
+	# 	threads.append(threading.Thread(target=extract_instance_segmentation, args=(rgb_list,)))
+	#
+	# # NOTE: Start threads
+	# for thread in threads:
+	# 	thread.start()
+	#
+	# # NOTE: Wait all threads stop
+	# for thread in threads:
+	# 	thread.join()
+
+	# NOTE: Define processes
+	processes = []
+	for rgb_list in img_rgb_lists:
+		processes.append(Process(target=extract_instance_segmentation, args=(rgb_list,)))
+
+	# NOTE: Start processes
+	for process in processes:
+		process.start()
+
+	# NOTE: Wait all processes stop
+	for process in processes:
+		process.join()
 
 if __name__ == "__main__":
 	main()
