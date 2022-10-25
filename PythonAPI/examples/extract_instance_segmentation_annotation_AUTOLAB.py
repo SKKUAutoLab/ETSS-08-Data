@@ -111,9 +111,9 @@ def divide_chunks(l, n):
 		yield l[i:i + n]
 
 
-def extract_instance_segmentation(img_rgb_list):
+def extract_instance_segmentation(img_rgb_list, index):
 
-	for img_rgb_path in tqdm(img_rgb_list, desc=f""):
+	for img_rgb_path in tqdm(img_rgb_list, desc=f"Process #{index} : "):
 		basename        = os.path.basename(img_rgb_path)
 		basename_noext  = os.path.splitext(basename)[0]
 		img_ins_path    = os.path.join(folder_img_ins, f"{basename_noext}.png")
@@ -164,11 +164,11 @@ def main():
 
 	# NOTE: Define processes
 	processes = []
-	for rgb_list in img_rgb_lists:
-		processes.append(Process(target=extract_instance_segmentation, args=(rgb_list,)))
+	for index, rgb_list in enumerate(img_rgb_lists):
+		processes.append(Process(target=extract_instance_segmentation, args=(rgb_list, index)))
 
 	# NOTE: Start processes
-	print(f"{len(processes)} processes are running")
+	print(f"\n{len(processes)} processes are running")
 	for process in processes:
 		process.start()
 
