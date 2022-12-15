@@ -56,6 +56,10 @@ def draw_instance(img_rgb_path, img_ins_path):
 	# cv2.destroyAllWindows()
 
 def main():
+	'''
+		Drawing the instance segmentation on the rgb image.
+			which is the same as in the readme.
+	'''
 	# This is needed to avoid strange crashes related to opencv
 	cv2.setNumThreads(0)
 
