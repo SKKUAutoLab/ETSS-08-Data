@@ -36,8 +36,9 @@ folder_img_rbg    = f"{location}/tss_out_rgb_img"
 folder_img_ins    = f"{location}/tss_out_ins_img"
 folder_anno_ins   = f"{location}/tss_out_ins"
 folder_anno_bbox  = f"{location}/tss_out_bbox"
-number_of_process = 4
+number_of_process = 4  # Number of processes which runs in simultaneously
 
+# NOTE: the class for extraction
 annotation_class = {
 	'vehicle'   : 10,
 	'pedestrian': 4
@@ -123,6 +124,9 @@ def extract_instance(img_rgb_path, img_ins_path):
 
 
 def divide_chunks(l, n):
+	'''
+		Devide 'l' into number of segment with 'n' elements.
+	'''
 	# looping till length l
 	for i in range(0, len(l), n):
 		yield l[i:i + n]
