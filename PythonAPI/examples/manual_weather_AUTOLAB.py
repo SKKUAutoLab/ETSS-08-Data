@@ -152,8 +152,9 @@ def main():
 
 	# NOTE: setting weather bases on the standard value
 	# https://carla.readthedocs.io/en/0.8.4/carla_settings/
-	# world.set_weather(getattr(carla.WeatherParameters, 'CloudyNoon'))  # Trua may mu
+	# world.set_weather(getattr(carla.WeatherParameters, 'CloudyNoon'))  # Noon with overcast
 
+	# NOTE: setting weather with changing every second
 	# while True:
 	# 	timestamp = world.wait_for_tick(seconds=30.0).timestamp
 	# 	elapsed_time += timestamp.delta_seconds

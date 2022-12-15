@@ -65,14 +65,15 @@ FPS          = 25	 # Frame per second
 NUM_SEC_GET  = 5	 # Get bounding box per second
 SAVE_BBOX    = True  # is save bounding box
 
+# NOTE: the list of class with extraction
 actor_annotations = {
 	"reference": {
 		"passenger_car": 0,
-		"truck": 1,
-		"motorcycle": 2,
-		"bicycle": 3,
-		"escooter": 5,
-		"others":9
+		"truck"        : 1,
+		"motorcycle"   : 2,
+		"bicycle"      : 3,
+		"escooter"     : 5,
+		"others"       : 9
 	},
 	"classification": {
 		"vehicle.vespa.zx125": 2,
