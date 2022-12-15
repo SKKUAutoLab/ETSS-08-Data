@@ -27,6 +27,7 @@ from tqdm import tqdm
 
 
 def draw_instance(img_rgb_path, img_ins_path):
+	'''Draw each instance segmentation'''
 	img_rgb = cv2.imread(img_rgb_path)
 	img_ins = cv2.imread(img_ins_path, cv2.IMREAD_UNCHANGED)  # IMREAD_UNCHANGED => open image with the alpha channel
 
