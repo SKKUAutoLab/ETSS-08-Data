@@ -63,7 +63,7 @@ def main():
 	client = carla.Client(args.host, args.port)
 	client.set_timeout(2.0)
 	world = client.get_world()
-	world = client.load_world('Town02')
+	world = client.load_world('Town02')  # Name of Town we need, usually Town10HD and Town02
 
 
 
