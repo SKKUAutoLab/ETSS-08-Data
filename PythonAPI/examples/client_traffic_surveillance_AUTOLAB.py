@@ -49,7 +49,7 @@ except ImportError:
 NUMBER_IMAGE   = 2000  # Number of image to get bounding box
 VIEW_WIDTH     = 1280  # Resolution width of dataset
 VIEW_HEIGHT    = 720   # Resolution height of dataset
-FPS            = 20    # Frame per second
+FPS            = 40    # Frame per second
 NUM_SEC_GET    = 1     # Get annotation per second
 SAVE_IMG       = False # is save bounding box
 
