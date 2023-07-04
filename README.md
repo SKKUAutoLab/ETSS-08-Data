@@ -1,7 +1,7 @@
 ### Automation Lab, Sungkyunkwan University
 
 #### GitHub Stats
-![](https://img.shields.io/github/downloads/SKKU-AutoLab-VSW/Realistic-Traffic-Surveillance-Dataset/total.svg?style=for-the-badge)
+![](https://img.shields.io/github/downloads/SKKU-AutoLab-VSW/ETSS-08-Data/total.svg?style=for-the-badge)
 
 
 # Traffic Surveillance Dataset
