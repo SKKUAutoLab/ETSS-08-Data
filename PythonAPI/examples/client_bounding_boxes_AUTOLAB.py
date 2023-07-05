@@ -622,6 +622,7 @@ def main():
 	make_dir("out_rgb")
 	make_dir("out_rgb_bbox")
 
+	# NOTE: run the generate bounding box
 	try:
 		client = BasicSynchronousClient()
 		client.game_loop()
