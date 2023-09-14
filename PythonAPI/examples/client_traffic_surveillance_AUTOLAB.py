@@ -1,21 +1,4 @@
 #!/usr/bin/env python
-# ==================================================================== #
-# Copyright (C) 2022 - Automation Lab - Sungkyunkwan University
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-# ==================================================================== #
 
 import glob
 import os
@@ -49,16 +32,17 @@ except ImportError:
 NUMBER_IMAGE   = 2000  # Number of image to get bounding box
 VIEW_WIDTH     = 1280  # Resolution width of dataset
 VIEW_HEIGHT    = 720   # Resolution height of dataset
-FPS            = 25    # Frame per second
+FPS            = 20    # Frame per second
 NUM_SEC_GET    = 5     # Get annotation per second
 SAVE_IMG       = False # is save bounding box
 
 # NOTE: folder to store the result
-FOLDER_IMG_RGB   = "tss_out/tss_out_rgb_img"
-FOLDER_IMG_INS   = "tss_out/tss_out_ins_img"
-FOLDER_ANNO_BBOX = "tss_out/tss_out_bbox"
-FOLDER_ANNO_INS  = "tss_out/tss_out_ins"
-FOLDER_DRAW      = "tss_out/tss_out_drawn"
+FOLDER_OUT       = "tss_out_7"
+FOLDER_IMG_RGB   = f"{FOLDER_OUT}/tss_out_rgb_img"
+FOLDER_IMG_INS   = f"{FOLDER_OUT}/tss_out_ins_img"
+FOLDER_ANNO_BBOX = f"{FOLDER_OUT}/tss_out_bbox"
+FOLDER_ANNO_INS  = f"{FOLDER_OUT}/tss_out_ins"
+FOLDER_DRAW      = f"{FOLDER_OUT}/tss_out_drawn"
 
 class CustomTimer:
 	def __init__(self):
@@ -389,14 +373,22 @@ class SensorManager:
 
 
 def create_list_location_on_town():
+	# Position: 
+	# 1: -95.8, 36.7
+	# 2: -59.7, 34.9
+	# 3: 51.1, 37.1
+	# 4: 92.2, 39.7
+	# 5: -57.9, 74.0
+	# 6: 112.1, 85.5
+	# 7: -116.5, 105.5
 	# NOTE: Town10HD
 	list_location = [
 		carla.Transform(
-			carla.Location(x=-53.3, y=145.8, z=0.600000),
-			carla.Rotation(pitch=0.000000, yaw=-45.0, roll=0.000000)
+			carla.Location(x=-116.5, y=105.5, z=0.600000),
+			carla.Rotation(pitch=-1, yaw=-45.0, roll=0.000000)
 		),
 		carla.Transform(
-			carla.Location(x=-58.7, y=36.2, z=0.600000),
+			carla.Location(x=-10, y=0, z=25),
 			carla.Rotation(pitch=0.000000, yaw=-45.0, roll=0.000000)
 		)
 	]
@@ -430,11 +422,12 @@ def run_simulation(args, client):
 			traffic_manager.set_synchronous_mode(True)
 			settings.synchronous_mode = True
 			settings.fixed_delta_seconds = 1 / FPS
+			# settings.fixed_delta_seconds = 0.05
 			world.apply_settings(settings)
 
 
 		# NOTE: Instanciating the vehicle to which we attached the sensors
-		bp = world.get_blueprint_library().filter('vehicle.bh.crossbike')[0]  # Set vehicle
+		bp = world.get_blueprint_library().filter('walker.pedestrian.0001')[0]  # Set vehicle
 		# vehicle = world.spawn_actor(bp, random.choice(world.get_map().get_spawn_points()))  # Set random position on map
 		vehicle = world.spawn_actor(bp, list_location[0])
 		vehicle_list.append(vehicle)
