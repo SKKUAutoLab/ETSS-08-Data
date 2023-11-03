@@ -50,7 +50,7 @@ To show the position of camera, run the command
 python client_traffic_surveillance_AUTOLAB.py
 ```
 
-Finally, we find the right position of camera like this.
+Finally, we find the right position of camera like image below.
 
 ![gif](images/ui_capturing.jpeg)
 
