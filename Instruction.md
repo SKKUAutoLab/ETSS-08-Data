@@ -90,15 +90,19 @@ And the image would be stored in these folder:
 After getting the image, we convert the image into instance segmentation and coco format.
 Run the extraction command:
 
+
 ```shell
 python extract_instance_segmentation_annotation_AUTOLAB.py
 ```
 
+
 Visualize the instance after extraction:
+
 
 ```shell
 python draw_from_txt_instance_segmentation_AUTOLAB.py
 ```
+
 
 ![gif](images/00000120.jpeg)
 
