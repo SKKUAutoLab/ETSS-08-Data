@@ -27,7 +27,7 @@ The location will be use the set the default parameters on next step.
 
 Using the location above to change make the default location of vehicle in file "client_traffic_surveillance_AUTOLAB.py"
 
-```python
+```python 
 list_location = [
     carla.Transform(
         carla.Location(x=-53.3, y=145.8, z=0.600000),

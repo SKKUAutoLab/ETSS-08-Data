@@ -70,9 +70,10 @@ def main():
 	# This is needed to avoid strange crashes related to opencv
 	cv2.setNumThreads(0)
 
-	folder_img_rbg   = "tss_out/tss_out_rgb_img"
-	folder_out_ins   = "tss_out/tss_out_ins"
-	folder_img_drawn = "tss_out/tss_out_drawn"
+	folder_root      = "/media/sugarubuntu/DataSKKU2/2_Dataset/Carla/rain_full/tss_out_7/"
+	folder_img_rbg   = f"{folder_root}/tss_out_rgb_img"
+	folder_out_ins   = f"{folder_root}/tss_out_ins"
+	folder_img_drawn = f"{folder_root}/tss_out_drawn"
 
 	img_rgb_list   = glob.glob(os.path.join(folder_img_rbg, "*.jpg"))
 
