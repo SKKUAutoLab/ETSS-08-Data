@@ -1,7 +1,9 @@
 # Traffic Surveillance Dataset
 Traffic Surveillance Data Generation capable of producing various environment record on road by using Carla.
 
+
 ![gif](images/traffic_surveillance_intersection.gif)
+
 
 ## I. Finding the location on the Town
 
@@ -50,7 +52,7 @@ To show the position of camera, run the command
 python client_traffic_surveillance_AUTOLAB.py
 ```
 
-Finally, we find the right position of camera like this.
+Finally, we find the right position of camera like image below.
 
 ![gif](images/ui_capturing.jpeg)
 
@@ -90,15 +92,19 @@ And the image would be stored in these folder:
 After getting the image, we convert the image into instance segmentation and coco format.
 Run the extraction command:
 
+
 ```shell
 python extract_instance_segmentation_annotation_AUTOLAB.py
 ```
 
+
 Visualize the instance after extraction:
+
 
 ```shell
 python draw_from_txt_instance_segmentation_AUTOLAB.py
 ```
+
 
 ![gif](images/00000120.jpeg)
 
