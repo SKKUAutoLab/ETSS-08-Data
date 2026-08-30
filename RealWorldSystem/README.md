@@ -45,7 +45,7 @@ To execute the Python source code for processing the dataset, install the requir
 | Metric    | Year  | Pub   | Paper | Link  | Note |
 | :---:     | :---: | :---  | :---  | :---: | :--- |
 | Precision | 1955 | American Documentation | Machine literature searching VIII. Operational criteria for designing information retrieval systems | [paper](https://doi.org/10.1002/asi.5090060209) | TP / (TP + FP) |
-
+| Recall | 1955 | American Documentation | Machine literature searching VIII. Operational criteria for designing information retrieval systems | [paper](https://doi.org/10.1002/asi.5090060209) | TP / (TP + FN) |
 
 
 
